@@ -18,7 +18,8 @@ def task_create(request):
     return render(request, 'task_create.html')
 
 def task_list(request):
-    tasks = Task.objects.all()
+    query = request.GET.get('q', '')  # Get the search query from the request
+    tasks = Task.objects.filter(title__icontains=query) if query else Task.objects.all()
     today = date.today()
     for task in tasks:
         if task.due_date and task.due_date < today:
@@ -31,7 +32,7 @@ def task_list(request):
             task.status = 'Upcoming'
             task.css_class = 'text-success'  # Add CSS class for upcoming
         task.save()
-    return render(request, 'task_list.html', {'tasks': tasks, 'task_ids': [task.id for task in tasks]})
+    return render(request, 'task_list.html', {'tasks': tasks, 'task_ids': [task.id for task in tasks], 'query': query})
 
 def task_update(request, id):  # Ensure parameter name matches the URL pattern
     task = get_object_or_404(Task, id=id)
